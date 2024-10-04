@@ -2,10 +2,24 @@
 #include <cstdlib>
 #include "tracing.h"
 
+void print_help() {
+    printf("Usage: hvtraceroute [options] <hostname>\n");
+    printf("Options:\n");
+    printf("  -q <attempts>   Number of attempts per hop (default: 3)\n");
+    printf("  -h <max_hop>    Maximum number of hops (default: 30)\n");
+    printf("  -f <ttl>        Time to live (default: 1)\n");
+    printf("  --help          Display this help message\n");
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <hostname>\n", argv[0]);
         exit(1);
+    }
+
+    if(strcmp(argv[1], "--help") == 0) {
+        print_help();
+        exit(0);
     }
 
     int option;
@@ -28,8 +42,6 @@ int main(int argc, char* argv[]) {
                 break;
         }
     }
-
-
 
     if (optind >= argc) {
         fprintf(stderr, "Expected hostname after options\n");
