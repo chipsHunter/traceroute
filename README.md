@@ -16,3 +16,8 @@
  8 142.250.186.174 204.26 ms 
 Reached target: 142.250.186.174
 ```
+--------------------------------------
+Для установки утилиты достаточно следующей команды в терминале:
+```
+curl -sSL https://github.com/chipsHunter/traceroute/raw/main/install.sh | bash
+```
