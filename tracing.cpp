@@ -1,5 +1,10 @@
 #include "tracing.h"
 
+void initialize_options(struct trace_options* options) {
+    options->MAX_HOP = 30;
+    options->attempts = 3;
+    options->TTL = 1;
+}
 // Функция для проверки, является ли полученное ICMP-сообщение "Destination Unreachable"
 int is_destination_unreachable(unsigned char *buf, int len) {
     struct ip *ip_header = (struct ip *) buf;
@@ -104,9 +109,9 @@ int trace(int *udp_socket, int *icmp_socket, struct sockaddr_in* dest_addr, int 
 }
 
 // Функция для выполнения трассировки
-void trace_udp(const char *host) {
+void trace_udp(struct trace_options* options) {
     struct sockaddr_in dest_addr;
-    int ttl = 1;
+    int ttl = options->TTL;
 
     // Создание UDP сокета для отправки пакетов
     int udp_socket = open_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -118,7 +123,7 @@ void trace_udp(const char *host) {
     struct addrinfo hints, *res;
     set_hints_for_host_searching(&hints, 4);
 
-    if (getaddrinfo(host, NULL, &hints, &res) != 0) {
+    if (getaddrinfo(options->HOST, NULL, &hints, &res) != 0) {
         perror("getaddrinfo");
         exit(1);
     }
@@ -133,11 +138,11 @@ void trace_udp(const char *host) {
 
     int tracerouting = 1;
     // Цикл по увеличению TTL для отслеживания хопов
-    for (ttl = 1; ttl <= MAX_HOPS && tracerouting; ttl++) {
+    for ( ; ttl <= options->MAX_HOP && tracerouting; ttl++) {
 
         printf("%2d ", ttl);
 
-        for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        for (int attempt = 0; attempt < options->attempts; attempt++) {
             if((trace(&udp_socket, &icmp_socket, &dest_addr, &ttl, attempt == 0)) == 1) {
                 tracerouting = 0;
                 break;

@@ -16,11 +16,18 @@
 #include <errno.h>
 #include <sys/time.h>
 
-#define MAX_HOPS 30
 #define TIMEOUT 1
 #define DEST_PORT 33434  // Стартовый порт для отправки UDP пакетов
-#define MAX_ATTEMPTS 3     // Число пакетов для каждого TTL
 
-void trace_udp(const char *host);
+
+struct trace_options {
+    char* HOST;
+    int MAX_HOP;
+    int attempts;
+    int TTL;
+};
+
+void initialize_options(struct trace_options* options);
+void trace_udp(struct trace_options* options);
 
 #endif //WORKING_TRACING_H

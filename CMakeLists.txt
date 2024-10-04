@@ -7,3 +7,5 @@ add_executable(traceroute
         main.cpp
         tracing.h
         tracing.cpp)
+
+install(TARGETS traceroute DESTINATION /usr/local/bin)
