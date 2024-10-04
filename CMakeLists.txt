@@ -3,7 +3,7 @@ project(working)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(traceroute
+add_executable(hvtraceroute
         main.cpp
         tracing.h
         tracing.cpp)
