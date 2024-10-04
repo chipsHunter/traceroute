@@ -1,9 +1,15 @@
 #include "tracing.h"
 
+void sethost(char* host, const char* name) {
+    strcpy(host, name);
+    *(host + strlen(host)) = '\0';
+}
+
 void initialize_options(struct trace_options* options) {
     options->MAX_HOP = 30;
     options->attempts = 3;
     options->TTL = 1;
+    options->HOST = (char*)calloc(128, sizeof(char));
 }
 // Функция для проверки, является ли полученное ICMP-сообщение "Destination Unreachable"
 int is_destination_unreachable(unsigned char *buf, int len) {

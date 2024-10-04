@@ -30,4 +30,6 @@ struct trace_options {
 void initialize_options(struct trace_options* options);
 void trace_udp(struct trace_options* options);
 
+void sethost(char* host, const char* name);
+
 #endif //WORKING_TRACING_H

@@ -29,12 +29,14 @@ int main(int argc, char* argv[]) {
         }
     }
 
+
+
     if (optind >= argc) {
         fprintf(stderr, "Expected hostname after options\n");
         exit(EXIT_FAILURE);
     }
-    const char* h = argv[optind];
-    memcpy(options.HOST, h, strlen(h));
+    const char* host_name = argv[optind];
+    sethost(options.HOST, host_name);
 
     trace_udp(&options);
     return 0;
