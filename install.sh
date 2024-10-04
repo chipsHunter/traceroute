@@ -5,7 +5,7 @@ sudo apt update
 sudo apt install -y cmake g++ make
 
 # Клонируем репозиторий
-https://github.com/chipsHunter/traceroute.git
+git clone https://github.com/chipsHunter/traceroute.git
 cd traceroute
 
 # Сборка и установка
