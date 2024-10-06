@@ -53,58 +53,62 @@ void set_hints_for_host_searching(struct addrinfo *hints, int ipv) {
     hints->ai_protocol = IPPROTO_UDP;
 }
 
-void set_socket_ttl(int *sockt, int *ttl) {
-    if (setsockopt(*sockt, IPPROTO_IP, IP_TTL, ttl, sizeof(*ttl)) < 0) {
-        perror("setsockopt");
-        exit(1);
-    }
-}
-
-//void set_dest_info(struct sockaddr_in* dest)
-
-int trace(int *udp_socket, int *icmp_socket, struct sockaddr_in* dest_addr, int *ttl, int print_addr) {
-    struct timeval start_time, end_time;
-    struct sockaddr_in recv_addr;
-    socklen_t addr_len;
-
-    char send_buffer[64] = "traceroute test";  // Тело UDP пакета
-    char recv_buffer[512];
-
-    if (setsockopt(*udp_socket, IPPROTO_IP, IP_TTL, ttl, sizeof(*ttl)) < 0) {
-        perror("setsockopt");
-        exit(1);
-    }
-
-    gettimeofday(&start_time, NULL);
-
-    if (sendto(*udp_socket, send_buffer, sizeof(send_buffer), 0, (struct sockaddr *)dest_addr,
-               sizeof(*dest_addr)) < 0) {
-        perror("sendto");
-        exit(1);
-    }
-
-    addr_len = sizeof(recv_addr);
-    int recv_len = recvfrom(*icmp_socket, recv_buffer, sizeof(recv_buffer), 0, (struct sockaddr *) &recv_addr,
-                            &addr_len);
-
-    gettimeofday(&end_time, NULL);
-
+int recvfrom_s(int *icmp_socket, char* recv_buffer, socklen_t* addr_len, sockaddr_in* recv_addr) {
+    int recv_len = recvfrom(*icmp_socket, recv_buffer, RECV_BUFFER, 0, (struct sockaddr *) recv_addr,
+                            addr_len);
     if (recv_len < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             printf("* ");
         } else {
             perror("recvfrom");
         }
-    } else {
+    }
+    return recv_len;
+}
+
+void setsockopt_s(const int *udp_socket, const int *ttl) {
+    if (setsockopt(*udp_socket, IPPROTO_IP, IP_TTL, ttl, sizeof(*ttl)) < 0) {
+        perror("setsockopt");
+        exit(1);
+    }
+}
+
+void sendto_s(const int *udp_socket, const sockaddr_in *dest_addr, const char *send_buffer) {
+    if (sendto(*udp_socket, send_buffer, sizeof(send_buffer), 0, (struct sockaddr *)dest_addr,
+               sizeof(*dest_addr)) < 0) {
+        perror("sendto");
+        exit(1);
+    }
+}
+
+void print_attempt(int print_addr, timeval &start_time, timeval &end_time, sockaddr_in &recv_addr) {
+    double elapsed_time = time_diff(&start_time, &end_time);
+
+    // Выводим IP адрес хопа только при первом успешном ответе
+    if (print_addr == 1) {
+        printf("%s ", inet_ntoa(recv_addr.sin_addr));
+    }
+
+    printf("%.2f ms ", elapsed_time);
+}
+
+int trace(int *udp_socket, int *icmp_socket, struct sockaddr_in* dest_addr, int *ttl, int print_addr) {
+    struct timeval start_time, end_time;
+    struct sockaddr_in recv_addr;
+    socklen_t addr_len = sizeof(recv_addr);
+
+    char send_buffer[64] = "traceroute test";  // Тело UDP пакета
+    char* recv_buffer = (char*)calloc(RECV_BUFFER, sizeof(char));
+
+    setsockopt_s(udp_socket, ttl);
+    gettimeofday(&start_time, NULL);
+    sendto_s(udp_socket, dest_addr, send_buffer);
+    int recv_len = recvfrom_s(icmp_socket, recv_buffer, &addr_len, &recv_addr);
+    gettimeofday(&end_time, NULL);
+
+    if (recv_len >= 0) {
         // Вычисляем время отклика
-        double elapsed_time = time_diff(&start_time, &end_time);
-
-        // Выводим IP адрес хопа только при первом успешном ответе
-        if (print_addr == 1) {
-            printf("%s ", inet_ntoa(recv_addr.sin_addr));
-        }
-
-        printf("%.2f ms ", elapsed_time);
+        print_attempt(print_addr, start_time, end_time, recv_addr);
 
         if (is_destination_unreachable((unsigned char *) recv_buffer, recv_len)) {
             printf("\nReached target: %s\n", inet_ntoa(recv_addr.sin_addr));

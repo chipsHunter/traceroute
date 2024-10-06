@@ -18,6 +18,7 @@
 
 #define TIMEOUT 1
 #define DEST_PORT 33434  // Стартовый порт для отправки UDP пакетов
+#define RECV_BUFFER 512
 
 
 struct trace_options {
