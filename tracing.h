@@ -29,6 +29,8 @@ struct trace_options {
 
 void initialize_options(struct trace_options* options);
 void trace_udp(struct trace_options* options);
+int is_destination_unreachable(unsigned char *buf, int len);
+int trace(int *udp_socket, int *icmp_socket, struct sockaddr_in* dest_addr, int *ttl, int print_addr);
 
 void sethost(char* host, const char* name);
 
